@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useEffect, useState, useLayoutEffect } from 'react';
+import { Button, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { db } from '../config/firebase';
-import { collection, getDocs, doc, addDoc, deleteDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { collection, doc, addDoc, deleteDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Dialog from 'react-native-dialog';
+import { signOut } from 'firebase/auth';
+import { auth } from '../config/firebase';
 
-export default function HomeScreen () {
+export default function HomeScreen({ navigation }: { navigation: any }) {
     const [productName, setProductName] = useState("");
     const [products, setProducts] = useState([]);
     const [visible, setVisible] = useState(false);
@@ -14,8 +15,8 @@ export default function HomeScreen () {
     const [selectedProductId, setSelectedProductId] = useState("");
 
     const renderItem = ({ item }: { item: any }) => (
-        <View style={ styles.itemContainer }>
-            <Text style={ styles.itemText }>{item.name}</Text>
+        <View style={styles.itemContainer}>
+            <Text style={styles.itemText}>{item.name}</Text>
             <TouchableOpacity onPress={() => showDialog(item)}>
                 <MaterialIcons name="edit" size={24} color="#6565cfff" />
             </TouchableOpacity>
@@ -28,14 +29,14 @@ export default function HomeScreen () {
     // const fetchProducts = async () => {
     //     try {
     //         const querySnapshot = await getDocs(collection(db, "ShoppingList"));
-    
+
     //         const productsData = querySnapshot.docs.map( doc => ({
     //             id: doc.id,
     //             ...doc.data()
     //         }))
-    
+
     //         setProducts(productsData);
-            
+
     //     } catch (error) {
     //         console.log("Erro ao buscar produtos: ", error);
     //     }
@@ -79,38 +80,51 @@ export default function HomeScreen () {
         setVisible(false);
     }
 
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+        } catch (error) {
+            console.log("Erro ao sair: ", error);
+
+        }
+    }
 
     useEffect(() => {
         // fetchProducts();
         const unsubscribe = onSnapshot(collection(db, "ShoppingList"), (snapshot) => {
-            const productsData = snapshot.docs.map( doc => ({
-                id: doc.id,
-                ...doc.data()
-            }))
+            const productsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
             setProducts(productsData);
         })
 
         return () => unsubscribe();
     }, []);
 
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <Button title='Sair' onPress={handleLogout} />
+            )
+        });
+    });
+
     return (
-        <View style={ styles.container }>
-            <View style={ styles.formContainer }>
-                <TextInput 
-                    style={ styles.input } 
+        <View style={styles.container}>
+            <View style={styles.formContainer}>
+                <TextInput
+                    style={styles.input}
                     placeholder="Nome e quantidade do produto"
                     value={productName}
                     onChangeText={text => setProductName(text)}
                     underlineColorAndroid="transparent"
-                    placeholderTextColor="#aaaaaa" 
-                    autoCapitalize='none' 
+                    placeholderTextColor="#aaaaaa"
+                    autoCapitalize='none'
                 />
-                <TouchableOpacity style={ styles.button } onPress={addProduct}>
-                    <Text style={ styles.buttonText }>Adicionar</Text>
+                <TouchableOpacity style={styles.button} onPress={addProduct}>
+                    <Text style={styles.buttonText}>Adicionar</Text>
                 </TouchableOpacity>
             </View>
             {products.length > 0 && (
-                <View style={styles.listContainer }>
+                <View style={styles.listContainer}>
                     <FlatList data={products} renderItem={renderItem} keyExtractor={item => item.id} removeClippedSubviews={true} />
                 </View>
             )}

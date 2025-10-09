@@ -20,7 +20,6 @@ export default function LoginScreen ({ navigation }: { navigation: any }) {
             const response = await signInWithEmailAndPassword(auth, email, password);
             const user = response.user;
             console.log("Login realizado com sucesso: ", user.uid);
-            navigation.navigate("HomeScreen");
         } catch (error: any) {
             Alert.alert("Erro", "Erro ao fazer login verifique suas credenciais e tente novamente");
         }
@@ -37,7 +36,6 @@ export default function LoginScreen ({ navigation }: { navigation: any }) {
 
             await updateProfile(user, { displayName: name });
 
-            navigation.navigate("HomeScreen");
         } catch (error: any) {
             Alert.alert("Erro", "Erro ao fazer cadastro", error.message);
         }
@@ -46,7 +44,7 @@ export default function LoginScreen ({ navigation }: { navigation: any }) {
     return (
         <View style={ styles.container }>
             <KeyboardAwareScrollView style={{ flex: 1, width: "100%" }} keyboardShouldPersistTaps="always">
-                <Image style={styles.logo} source={require('../../assets/logo.png')} />
+                <Image style={styles.logo} source={require('../../assets/icon.png')} />
                 {!isLogin && (
                     <TextInput 
                         style={styles.input} 
